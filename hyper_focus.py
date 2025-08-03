@@ -201,6 +201,7 @@ def menu():
 # Call the function to create database
 if __name__ == "__main__":
     create_database()
-    menu()
+    print_database()
+    #menu()
 
 
