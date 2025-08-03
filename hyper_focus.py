@@ -41,6 +41,29 @@ def create_database():
     conn.close()
     print("Database created")
 
+def add_project (name: str, description: str = "", status: str =""):
+    #add new project to database
+    conn= sqlite3.connect("hyperfocus.db")
+    cursor = conn.cursor()
+    try:
+        current_date = datetime.datetime.now().isoformat()
+        cursor.execute('''
+            INSERT INTO projects (name, description, created_date, status)
+            VALUES (?,?,?,?)
+        ''', (name, description, current_date, status))
+
+        conn.commit()
+        project_id = cursor.lastrowid
+        print(f"Project {name} created successfully! (ID: {project_id})")
+    except sqlite3.IntegrityError:
+        print(f"Error: Project {name} already exists")
+        return None
+    finally:
+        conn.close()
+
 # Call the function to create database
 if __name__ == "__main__":
     create_database()
+    add_project("project_test", "test if function works")
+
+
