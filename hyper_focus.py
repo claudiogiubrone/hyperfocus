@@ -112,8 +112,33 @@ def print_database():
         print("No projects found.")
 
     print("\n=== TASKS TABLE ===")
-    cursor.execute('SELECT * FROM tasks WHERE status in ("to_do", "in_progress") ORDER BY priority')
+    cursor.execute('SELECT * FROM tasks ORDER BY priority')
     tasks = cursor.fetchall()
+
+    if tasks:
+        # Add 'Category' to the header
+        print("ID | Project_ID | Title | Description | Status | Priority | Created | Completed | Category")
+        print("-" * 100) # Adjust line length
+
+        for task in tasks:
+            # Access the new column at index 8
+            print(f"{task[0]} | {task[1]} | {task[2]} | {task[3]} | {task[4]} | {task[5]} | {task[6]} | {task[7]} | {task[8]}")
+    else:
+        print("No tasks found.")
+
+    conn.close()
+
+def hyper_focus_view():
+    """Print all contents of the database."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT COUNT(*) FROM tasks WHERE status IN ("to_do", "in_progress")')
+    task_inprogress_count = cursor.fetchone()[0]
+    print(f"You have {task_inprogress_count} to do")
+
+    # select and display the main task i must focus on
+    cursor.execute('SELECT * FROM tasks WHERE status IN ("to_do","in_progress") ORDER BY priority ASC LIMIT 1')
+    tasks=cursor.fetchall()
 
     if tasks:
         # Add 'Category' to the header
@@ -168,7 +193,7 @@ def menu():
         print("7. Quit")
         print("8. Debug check")
 
-        selection= input("Enter your choice form 1 to 7: ").strip()
+        selection= input("Enter your choice form 1 to 8: ").strip()
         if selection == "1":
             project_name = input("Project name: ").strip()
             if not project_name:
@@ -199,6 +224,8 @@ def menu():
                 print("Please enter valid numbers for project ID and priority!")
         elif selection == "3":
             print_database()
+        elif selection == "4":
+            hyper_focus_view()
         elif selection ==  "7":
             print("Great work! Stay focused!")
             break
