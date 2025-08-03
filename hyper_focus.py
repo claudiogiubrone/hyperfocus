@@ -61,6 +61,31 @@ def add_project (name: str, description: str = "", status: str ="backlog"):
     finally:
         conn.close()
 
+def add_task (title: str, project_id: int, description: str = "", status: str ="backlog", priority: int =1):
+    #add new task to database
+    conn= sqlite3.connect("hyperfocus.db")
+    cursor = conn.cursor()
+
+    try:
+        # check if a project existss
+        cursor.execute("SELECT name FROM projects WHERE id= ?", (project_id,))
+        project = cursor.fetchone()
+        if not project:
+            print("This project does not exist")
+            return None
+        current_date = datetime.datetime.now().isoformat()
+        cursor.execute('''
+            INSERT INTO tasks(project_id, title, description, status, priority, created_at)
+            VALUES (?,?,?,?,?,?)
+        ''',(project_id, title, description, status, priority, current_date))
+
+        conn.commit()
+        task_id = cursor.lastrowid
+        print(f"Task {title} added to project {project[0]}")
+        return task_id
+    finally:
+        conn.close()
+
 def print_database():
     """Print all contents of the database."""
     conn = sqlite3.connect("hyperfocus.db")
