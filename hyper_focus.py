@@ -112,7 +112,7 @@ def print_database():
         print("No projects found.")
 
     print("\n=== TASKS TABLE ===")
-    cursor.execute('SELECT * FROM tasks ORDER BY priority')
+    cursor.execute('SELECT * FROM tasks WHERE status NOT IN ("completed", "done") ORDER BY priority')
     tasks = cursor.fetchall()
 
     if tasks:
@@ -152,6 +152,21 @@ def hyper_focus_view():
         print("No tasks found.")
 
     conn.close()
+
+def modify_task(task_id: int, new_status: str, new_priority: int):
+    conn = get_db_connection()
+    cursor = conn.cursor()  
+    if new_status.lower() in ("completed", "done"):
+        completed_date = datetime.datetime.now().isoformat()
+        cursor.execute('UPDATE tasks SET status = ?, completed_date = ?, new_priority = ? WHERE id = ?', (new_status, completed_date, new_priority, task_id))
+        print (f'Task {task_id} status has been updated to {new_status}')
+    else:
+        # For any other status, set the completed_date to NULL
+        cursor.execute('UPDATE tasks SET status = ?, new_priority =?, completed_date = NULL WHERE id = ?', (new_status,new_priority, task_id))
+        print (f'Task {task_id} status has been updated to {new_status}')
+    conn.commit()
+    conn.close()
+
 
 def debug_check():
     """Simple debug to check database contents"""
@@ -226,6 +241,10 @@ def menu():
             print_database()
         elif selection == "4":
             hyper_focus_view()
+        elif selection == "6":
+            task_id = int(input('What is the id of the task you want to update? '))
+            new_status = input('What is the status that you want to give? ')
+            modify_task(task_id, new_status)
         elif selection ==  "7":
             print("Great work! Stay focused!")
             break
