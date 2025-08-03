@@ -120,6 +120,33 @@ def print_database():
     
     conn.close()
 
+def debug_check():
+    """Simple debug to check database contents"""
+    try:
+        conn = sqlite3.connect("hyperfocus.db")
+        cursor = conn.cursor()
+        
+        print("DEBUG: Checking projects...")
+        cursor.execute('SELECT COUNT(*) FROM projects')
+        project_count = cursor.fetchone()[0]
+        print(f"DEBUG: Found {project_count} projects")
+        
+        cursor.execute('SELECT * FROM projects')
+        projects = cursor.fetchall()
+        print(f"DEBUG: Projects data: {projects}")
+        
+        print("DEBUG: Checking tasks...")
+        cursor.execute('SELECT COUNT(*) FROM tasks')
+        task_count = cursor.fetchone()[0]
+        print(f"DEBUG: Found {task_count} tasks")
+        
+        cursor.execute('SELECT * FROM tasks')
+        tasks = cursor.fetchall()
+        print(f"DEBUG: Tasks data: {tasks}")
+        
+        conn.close()
+    except Exception as e:
+        print(f"DEBUG ERROR: {e}")
 def menu():
     while True:
         print("Hyper Focus - menu")
@@ -130,8 +157,9 @@ def menu():
         print("4. Modify project")
         print("5. Modify task")
         print("6. Quit")
+        print("7. Debug check")
 
-        selection= input("Enter your choice form 1 to 6: ").strip()
+        selection= input("Enter your choice form 1 to 7: ").strip()
         if selection == "1":
             project_name = input("Project name: ").strip()
             if not project_name:
@@ -147,7 +175,6 @@ def menu():
             if not title:
                 print("Please write the tasks")
                 continue
-    
             try:
                 project_id = int(input("What is the project id linked to this task? "))
                 description = input('What do you want to achieve with this task? ')
@@ -158,7 +185,6 @@ def menu():
                 priority = int(priority_input) if priority_input else 1
                  # Correct order: title, project_id, description, status, priority
                 add_task(title, project_id, description, status, priority)
-        
             except ValueError:
                 print("Please enter valid numbers for project ID and priority!")
         elif selection == "3":
@@ -166,8 +192,12 @@ def menu():
         elif selection ==  "6":
             print("Great work! Stay focused!")
             break
+        elif selection == "7":  # Add this temporarily
+            debug_check()
         else:
             print("Please, select a valid choice")
+
+
 # Call the function to create database
 if __name__ == "__main__":
     create_database()
