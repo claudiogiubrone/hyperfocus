@@ -33,7 +33,7 @@ def create_database():
             description TEXT,
             status TEXT NOT NULL DEFAULT 'backlog',
             priority INTEGER DEFAULT 1,
-            category TEXT
+            category TEXT,
             created_date TEXT NOT NULL,
             completed_date TEXT,
             FOREIGN KEY (project_id) REFERENCES projects (id)
@@ -79,11 +79,11 @@ def add_task (title: str, project_id: int, description: str = "", status: str ="
         if not project:
             print("This project does not exist")
             return None
-        current_date = datetime.datetime.now().isoformat()
+        created_date = datetime.datetime.now().isoformat()
         cursor.execute('''
-            INSERT INTO tasks(project_id, title, description, status, priority, created_date)
-            VALUES (?,?,?,?,?,?)
-        ''',(project_id, title, description, status, priority, current_date))
+            INSERT INTO tasks(project_id, title, description, status, priority, created_date, category)
+            VALUES (?,?,?,?,?,?,?)
+        ''',(project_id, title, description, status, priority, created_date, category))
 
         conn.commit()
         task_id = cursor.lastrowid
@@ -99,7 +99,6 @@ def print_database():
     """Print all contents of the database."""
     conn = get_db_connection()
     cursor = conn.cursor()
-    
     print("\n=== PROJECTS TABLE ===")
     cursor.execute('SELECT * FROM projects')
     projects = cursor.fetchall()
@@ -111,19 +110,22 @@ def print_database():
             print(f"{project[0]} | {project[1]} | {project[2]} | {project[3]} | {project[4]}")
     else:
         print("No projects found.")
-    
+
     print("\n=== TASKS TABLE ===")
-    cursor.execute('SELECT * FROM tasks WHERE status in ("to_do", "in progress") ORDER BY priority')
+    cursor.execute('SELECT * FROM tasks WHERE status in ("to_do", "in_progress") ORDER BY priority')
     tasks = cursor.fetchall()
-    
+
     if tasks:
-        print("ID | Project_ID | Title | Description | Status | Priority | Created | Completed")
-        print("-" * 80)
+        # Add 'Category' to the header
+        print("ID | Project_ID | Title | Description | Status | Priority | Created | Completed | Category")
+        print("-" * 100) # Adjust line length
+
         for task in tasks:
-            print(f"{task[0]} | {task[1]} | {task[2]} | {task[3]} | {task[4]} | {task[5]} | {task[6]} | {task[7]}")
+            # Access the new column at index 8
+            print(f"{task[0]} | {task[1]} | {task[2]} | {task[3]} | {task[4]} | {task[5]} | {task[6]} | {task[7]} | {task[8]}")
     else:
         print("No tasks found.")
-    
+
     conn.close()
 
 def debug_check():
@@ -209,6 +211,6 @@ def menu():
 # Call the function to create database
 if __name__ == "__main__":
     create_database()
-#print_database()
-#menu()
+print_database()
+menu()
 
