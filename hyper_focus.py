@@ -112,12 +112,12 @@ def print_database():
         print("No projects found.")
 
     print("\n=== TASKS TABLE ===")
-    cursor.execute('SELECT * FROM tasks WHERE status NOT IN ("completed", "done") ORDER BY priority')
+    cursor.execute('SELECT * FROM tasks WHERE status NOT IN ("completed", "done") ORDER BY priority DESC')
     tasks = cursor.fetchall()
 
     if tasks:
         # Add 'Category' to the header
-        print("ID | Project_ID | Title | Description | Status | Priority | Created | Completed | Category")
+        print("ID | Project_ID | Title | Description | Status | Priority | Categoty | Category | Completed")
         print("-" * 100) # Adjust line length
 
         for task in tasks:
@@ -132,12 +132,15 @@ def hyper_focus_view():
     """Print all contents of the database."""
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT COUNT(*) FROM tasks WHERE status IN ("to_do", "in_progress")')
+    cursor.execute('SELECT COUNT(*) FROM tasks WHERE status IN ("to_do")')
+    task_to_do = cursor.fetchone()[0]
+    print(f"You have {task_to_do} to do")
+    cursor.execute('SELECT COUNT(*) FROM tasks WHERE status IN ("in_progress")')
     task_inprogress_count = cursor.fetchone()[0]
-    print(f"You have {task_inprogress_count} to do")
+    print(f"You have {task_inprogress_count} in progress")
 
     # select and display the main task i must focus on
-    cursor.execute('SELECT * FROM tasks WHERE status IN ("to_do","in_progress") ORDER BY priority ASC LIMIT 1')
+    cursor.execute('SELECT * FROM tasks WHERE status IN ("to_do", "in_progress") ORDER BY project_id, priority ASC LIMIT 1')
     tasks=cursor.fetchall()
 
     if tasks:
@@ -158,11 +161,11 @@ def modify_task(task_id: int, new_status: str, new_priority: int):
     cursor = conn.cursor()  
     if new_status.lower() in ("completed", "done"):
         completed_date = datetime.datetime.now().isoformat()
-        cursor.execute('UPDATE tasks SET status = ?, completed_date = ?, new_priority = ? WHERE id = ?', (new_status, completed_date, new_priority, task_id))
+        cursor.execute('UPDATE tasks SET status = ?, completed_date = ?, priority = ? WHERE id = ?', (new_status, completed_date, new_priority, task_id))
         print (f'Task {task_id} status has been updated to {new_status}')
     else:
         # For any other status, set the completed_date to NULL
-        cursor.execute('UPDATE tasks SET status = ?, new_priority =?, completed_date = NULL WHERE id = ?', (new_status,new_priority, task_id))
+        cursor.execute('UPDATE tasks SET status = ?, priority =?, completed_date = NULL WHERE id = ?', (new_status,new_priority, task_id))
         print (f'Task {task_id} status has been updated to {new_status}')
     conn.commit()
     conn.close()
@@ -244,7 +247,8 @@ def menu():
         elif selection == "6":
             task_id = int(input('What is the id of the task you want to update? '))
             new_status = input('What is the status that you want to give? ')
-            modify_task(task_id, new_status)
+            new_priority = int(input("Set a new priority or confirm: "))
+            modify_task(task_id, new_status, new_priority)
         elif selection ==  "7":
             print("Great work! Stay focused!")
             break
