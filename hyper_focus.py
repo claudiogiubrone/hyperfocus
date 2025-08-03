@@ -41,7 +41,7 @@ def create_database():
     conn.close()
     print("Database created")
 
-def add_project (name: str, description: str = "", status: str =""):
+def add_project (name: str, description: str = "", status: str ="backlog"):
     #add new project to database
     conn= sqlite3.connect("hyperfocus.db")
     cursor = conn.cursor()
@@ -54,16 +54,75 @@ def add_project (name: str, description: str = "", status: str =""):
 
         conn.commit()
         project_id = cursor.lastrowid
-        print(f"Project {name} created successfully! (ID: {project_id})")
+        print(f"Project {name} created successfully! (ID: {project_id}), Status: {status}")
     except sqlite3.IntegrityError:
         print(f"Error: Project {name} already exists")
         return None
     finally:
         conn.close()
 
+def print_database():
+    """Print all contents of the database."""
+    conn = sqlite3.connect("hyperfocus.db")
+    cursor = conn.cursor()
+    
+    print("\n=== PROJECTS TABLE ===")
+    cursor.execute('SELECT * FROM projects')
+    projects = cursor.fetchall()
+    
+    if projects:
+        print("ID | Name | Description | Created Date | Status")
+        print("-" * 60)
+        for project in projects:
+            print(f"{project[0]} | {project[1]} | {project[2]} | {project[3]} | {project[4]}")
+    else:
+        print("No projects found.")
+    
+    print("\n=== TASKS TABLE ===")
+    cursor.execute('SELECT * FROM tasks')
+    tasks = cursor.fetchall()
+    
+    if tasks:
+        print("ID | Project_ID | Title | Description | Status | Priority | Created | Completed")
+        print("-" * 80)
+        for task in tasks:
+            print(f"{task[0]} | {task[1]} | {task[2]} | {task[3]} | {task[4]} | {task[5]} | {task[6]} | {task[7]}")
+    else:
+        print("No tasks found.")
+    
+    conn.close()
+
+def menu():
+    while True:
+        print("Hyper Focus - menu")
+        print("What do you want to do?")
+        print("1. Add new project")
+        print("2. Add new task to a project")
+        print("3. View dashboard")
+        print("4. Modify project")
+        print("5. Modify task")
+        print("6. Quit")
+
+        selection= input("Enter your choice form 1 to 6: ").strip()
+        if selection == "1":
+            project_name = input("Project name: ").strip()
+            if not project_name:
+                print("Error! All projects must have a name!")
+                continue
+            project_description = input("Describe your project: ").strip()
+            project_status= input("Define the status of the project: ").strip()
+            if not project_status:
+                project_status= "backlog"
+            add_project(project_name, project_description, project_status)
+        elif selection == "3":
+            print_database()
+        elif selection ==  "6":
+            print("Great work! Stay focused!")
+        else:
+            print("Please, select a valid choice")
 # Call the function to create database
 if __name__ == "__main__":
     create_database()
-    add_project("project_test", "test if function works")
+    menu()
 
 
