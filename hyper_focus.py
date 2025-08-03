@@ -5,11 +5,12 @@ from typing import Optional, List, Dict, Any
 import json
 import os
 
+database_path = "C:/Users/Claudio Giubrone/Documents/workspace/hyper_focus/huperfocus.db" # Change this to your desired path
 # fuction to create a database
 def create_database():
     print("Function started - creating database...")
     # creates database if it does not exist"
-    conn = sqlite3.connect("hyperfocus.db")
+    conn = sqlite3.connect(database_path)
     print(f"Database should be created at: {os.path.abspath('hyperfocus.db')}")
     cursor = conn.cursor()
 
@@ -32,6 +33,7 @@ def create_database():
             description TEXT,
             status TEXT NOT NULL DEFAULT 'backlog',
             priority INTEGER DEFAULT 1,
+            category TEXT
             created_date TEXT NOT NULL,
             completed_date TEXT,
             FOREIGN KEY (project_id) REFERENCES projects (id)
@@ -41,9 +43,13 @@ def create_database():
     conn.close()
     print("Database created")
 
+def get_db_connection():
+    conn = sqlite3.connect(database_path)
+    conn.row_factory = sqlite3.Row # This lets you access columns by name
+    return conn
 def add_project (name: str, description: str = "", status: str ="backlog"):
     #add new project to database
-    conn= sqlite3.connect("hyperfocus.db")
+    conn= get_db_connection()
     cursor = conn.cursor()
     try:
         current_date = datetime.datetime.now().isoformat()
@@ -61,9 +67,9 @@ def add_project (name: str, description: str = "", status: str ="backlog"):
     finally:
         conn.close()
 
-def add_task (title: str, project_id: int, description: str = "", status: str ="backlog", priority: int =1):
+def add_task (title: str, project_id: int, description: str = "", status: str ="backlog", priority: int =1, category: str =""):
     #add new task to database
-    conn= sqlite3.connect("hyperfocus.db")
+    conn= get_db_connection()
     cursor = conn.cursor()
 
     try:
@@ -91,7 +97,7 @@ def add_task (title: str, project_id: int, description: str = "", status: str ="
 
 def print_database():
     """Print all contents of the database."""
-    conn = sqlite3.connect("hyperfocus.db")
+    conn = get_db_connection()
     cursor = conn.cursor()
     
     print("\n=== PROJECTS TABLE ===")
@@ -107,7 +113,7 @@ def print_database():
         print("No projects found.")
     
     print("\n=== TASKS TABLE ===")
-    cursor.execute('SELECT * FROM tasks')
+    cursor.execute('SELECT * FROM tasks WHERE status in ("to_do", "in progress") ORDER BY priority')
     tasks = cursor.fetchall()
     
     if tasks:
@@ -123,7 +129,7 @@ def print_database():
 def debug_check():
     """Simple debug to check database contents"""
     try:
-        conn = sqlite3.connect("hyperfocus.db")
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         print("DEBUG: Checking projects...")
@@ -153,11 +159,12 @@ def menu():
         print("What do you want to do?")
         print("1. Add new project")
         print("2. Add new task to a project")
-        print("3. View dashboard")
-        print("4. Modify project")
-        print("5. Modify task")
-        print("6. Quit")
-        print("7. Debug check")
+        print("3. View the all database")
+        print("4. View the task you should focus on")
+        print("5. Modify project")
+        print("6. Modify task")
+        print("7. Quit")
+        print("8. Debug check")
 
         selection= input("Enter your choice form 1 to 7: ").strip()
         if selection == "1":
@@ -183,16 +190,17 @@ def menu():
                     status = "backlog"
                 priority_input = input("What is the priority (where 1 is Top and 5 is very low)?: ")
                 priority = int(priority_input) if priority_input else 1
+                category = input("What is the category of this taks? ")
                  # Correct order: title, project_id, description, status, priority
-                add_task(title, project_id, description, status, priority)
+                add_task(title, project_id, description, status, priority, category)
             except ValueError:
                 print("Please enter valid numbers for project ID and priority!")
         elif selection == "3":
             print_database()
-        elif selection ==  "6":
+        elif selection ==  "7":
             print("Great work! Stay focused!")
             break
-        elif selection == "7":  # Add this temporarily
+        elif selection == "8":  # Add this temporarily
             debug_check()
         else:
             print("Please, select a valid choice")
@@ -201,7 +209,6 @@ def menu():
 # Call the function to create database
 if __name__ == "__main__":
     create_database()
-    print_database()
-    #menu()
-
+#print_database()
+#menu()
 
