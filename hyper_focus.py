@@ -75,7 +75,7 @@ def add_task (title: str, project_id: int, description: str = "", status: str ="
             return None
         current_date = datetime.datetime.now().isoformat()
         cursor.execute('''
-            INSERT INTO tasks(project_id, title, description, status, priority, created_at)
+            INSERT INTO tasks(project_id, title, description, status, priority, created_date)
             VALUES (?,?,?,?,?,?)
         ''',(project_id, title, description, status, priority, current_date))
 
@@ -83,6 +83,9 @@ def add_task (title: str, project_id: int, description: str = "", status: str ="
         task_id = cursor.lastrowid
         print(f"Task {title} added to project {project[0]}")
         return task_id
+    except Exception as e:  # Add this exception handling
+        print(f"Error adding task: {e}")
+        return None
     finally:
         conn.close()
 
@@ -139,10 +142,30 @@ def menu():
             if not project_status:
                 project_status= "backlog"
             add_project(project_name, project_description, project_status)
+        elif selection == "2":
+            title = input("What is the task: ").strip()
+            if not title:
+                print("Please write the tasks")
+                continue
+    
+            try:
+                project_id = int(input("What is the project id linked to this task? "))
+                description = input('What do you want to achieve with this task? ')
+                status = input('What is the status of the task?: ')
+                if not status:
+                    status = "backlog"
+                priority_input = input("What is the priority (where 1 is Top and 5 is very low)?: ")
+                priority = int(priority_input) if priority_input else 1
+                 # Correct order: title, project_id, description, status, priority
+                add_task(title, project_id, description, status, priority)
+        
+            except ValueError:
+                print("Please enter valid numbers for project ID and priority!")
         elif selection == "3":
             print_database()
         elif selection ==  "6":
             print("Great work! Stay focused!")
+            break
         else:
             print("Please, select a valid choice")
 # Call the function to create database
