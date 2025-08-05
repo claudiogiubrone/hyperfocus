@@ -5,7 +5,7 @@ from typing import Optional, List, Dict, Any
 import json
 import os
 
-database_path = "C:/Users/Claudio Giubrone/Documents/workspace/hyper_focus/huperfocus.db" # Change this to your desired path
+database_path = "C:/Users/Claudio Giubrone/Documents/workspace/hyper_focus/hyperfocus.db" # Change this to your desired path
 # fuction to create a database
 def create_database():
     print("Function started - creating database...")
